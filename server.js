@@ -15,21 +15,11 @@ MongoClient.connect('mongodb://app:oCNxicRsMwCpCd2PIDwb@ds055842.mlab.com:55842/
     })
 })
 
+app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.json())
+app.use(express.static('public'))
 
-
-// app.get('/', (req, res) => {
-//     // res.sendFile(__dirname + '/index.html')
-//     // console.log("Serving " + __dirname + "\\index.html")
-//     // Note: __dirname is directory that contains the JavaScript source code. Try logging it and see what you get!
-//     // Mine was 'D:\Dropbox (Personal)\Code\JavaScript\crud' for this app.
-//     var cursor = db.collection('quotes').find()
-//     db.collection('quotes').find().toArray(function(err, results) {
-//         console.log(results)
-//         // send HTML file populated with quotes here
-//     })
-// })
-// Note: request and response are usually written as req and res respectively.
 
 app.get('/', (req, res) => {
     db.collection('quotes').find().toArray((err, result) => {
@@ -39,14 +29,35 @@ app.get('/', (req, res) => {
     })
 })
 
+
 app.post('/quotes', (req, res) => {
     db.collection('quotes').save(req.body, (err, result) => {
         if (err) return console.log(err)
-
         console.log('saved to database')
         res.redirect('/')
     })
-    // console.log(req.body)
 })
 
-app.set('view engine', 'ejs')
+
+app.put('/quotes', (req, res) => {
+    // Handle put request
+    db.collection('quotes').findOneAndUpdate(
+        {
+            name: 'Yoda'
+        },
+        {
+          $set: {
+              name: req.body.name,
+              quote: req.body.quote
+          }
+        },
+        {
+            sort: {_id:-1},
+            upsert: true
+        },
+        (err, result) => {
+            if (err) return res.send(err)
+            res.send(result)
+        }
+    )
+})
